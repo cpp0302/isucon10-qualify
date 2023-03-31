@@ -15,6 +15,14 @@ services:
       MYSQL_PASSWORD: isucon
     ports:
       - "3306:3306"
+    deploy:
+      resources:
+        limits:
+          cpus: "1"
+          memory: 2048M
+        reservations:
+          cpus: "1"
+          memory: 128M
 
   api-server:
     build: ../go
@@ -35,6 +43,14 @@ services:
       SERVER_PORT: 1323
     ports:
       - "1323:1323"
+    deploy:
+      resources:
+        limits:
+          cpus: "1"
+          memory: 2048M
+        reservations:
+          cpus: "1"
+          memory: 128M
     depends_on:
       - mysql
     command: /go/src/isuumo/isuumo
