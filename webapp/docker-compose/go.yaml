@@ -24,6 +24,30 @@ services:
           cpus: "1"
           memory: 128M
 
+  mysql2:
+    image: mysql:5.7
+    volumes:
+      - ../mysql2/data:/var/lib/mysql
+      - ../mysql2/db:/docker-entrypoint-initdb.d
+      - ../logs/mysql2:/var/log/mysql
+      - ../../provisioning/ansible/roles/web-bootstrap/files/my.cnf:/etc/mysql/conf.d/my.cnf
+      - ../../provisioning/ansible/roles/web-bootstrap/files/slow-mysqld.cnf:/etc/mysql/conf.d/slowquery.cnf
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: isuumo
+      MYSQL_USER: isucon
+      MYSQL_PASSWORD: isucon
+    ports:
+      - "3307:3306"
+    deploy:
+      resources:
+        limits:
+          cpus: "1"
+          memory: 2048M
+        reservations:
+          cpus: "1"
+          memory: 128M
+
   api-server:
     build: ../go
     entrypoint:
@@ -32,14 +56,21 @@ services:
       - 60s
       - -wait
       - tcp://mysql:3306
+      - -wait
+      - tcp://mysql2:3306
     volumes:
       - ../mysql/db:/go/src/mysql/db
+      - ../mysql2/db:/go/src/mysql2/db
       - ../fixture:/go/src/fixture
     environment:
       MYSQL_DBNAME: isuumo
       MYSQL_USER: isucon
       MYSQL_PASS: isucon
       MYSQL_HOST: mysql
+      MYSQL2_DBNAME: isuumo
+      MYSQL2_USER: isucon
+      MYSQL2_PASS: isucon
+      MYSQL2_HOST: mysql2
       SERVER_PORT: 1323
     ports:
       - "1323:1323"
@@ -53,6 +84,7 @@ services:
           memory: 128M
     depends_on:
       - mysql
+      - mysql2
     command: /go/src/isuumo/isuumo
 
   frontend:
