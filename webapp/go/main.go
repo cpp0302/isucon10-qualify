@@ -364,6 +364,9 @@ func postChair(c echo.Context) error {
 		c.Logger().Errorf("failed to begin tx: %v", err)
 		return c.NoContent(http.StatusInternalServerError)
 	}
+	insertSql := "INSERT INTO chair(id, name, description, thumbnail, price, height, width, depth, color, features, kind, popularity, stock) VALUES "
+	var values []string
+	var params []interface{}
 	defer tx.Rollback()
 	for _, row := range records {
 		rm := RecordMapper{Record: row}
@@ -384,12 +387,16 @@ func postChair(c echo.Context) error {
 			c.Logger().Errorf("failed to read record: %v", err)
 			return c.NoContent(http.StatusBadRequest)
 		}
-		_, err := tx.Exec("INSERT INTO chair(id, name, description, thumbnail, price, height, width, depth, color, features, kind, popularity, stock) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)", id, name, description, thumbnail, price, height, width, depth, color, features, kind, popularity, stock)
-		if err != nil {
-			c.Logger().Errorf("failed to insert chair: %v", err)
-			return c.NoContent(http.StatusInternalServerError)
-		}
+		values = append(values, "(?,?,?,?,?,?,?,?,?,?,?,?,?)")
+		params = append(params, id, name, description, thumbnail, price, height, width, depth, color, features, kind, popularity, stock)
 	}
+
+	_, err = tx.Exec(insertSql+strings.Join(values, ","), params...)
+	if err != nil {
+		c.Logger().Errorf("failed to insert chair: %v", err)
+		return c.NoContent(http.StatusInternalServerError)
+	}
+
 	if err := tx.Commit(); err != nil {
 		c.Logger().Errorf("failed to commit tx: %v", err)
 		return c.NoContent(http.StatusInternalServerError)
@@ -662,6 +669,9 @@ func postEstate(c echo.Context) error {
 		c.Logger().Errorf("failed to begin tx: %v", err)
 		return c.NoContent(http.StatusInternalServerError)
 	}
+	insertSql := "INSERT INTO estate(id, name, description, thumbnail, address, latitude, longitude, rent, door_height, door_width, features, popularity) VALUES "
+	var values []string
+	var params []interface{}
 	defer tx.Rollback()
 	for _, row := range records {
 		rm := RecordMapper{Record: row}
@@ -681,12 +691,16 @@ func postEstate(c echo.Context) error {
 			c.Logger().Errorf("failed to read record: %v", err)
 			return c.NoContent(http.StatusBadRequest)
 		}
-		_, err := tx.Exec("INSERT INTO estate(id, name, description, thumbnail, address, latitude, longitude, rent, door_height, door_width, features, popularity) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)", id, name, description, thumbnail, address, latitude, longitude, rent, doorHeight, doorWidth, features, popularity)
-		if err != nil {
-			c.Logger().Errorf("failed to insert estate: %v", err)
-			return c.NoContent(http.StatusInternalServerError)
-		}
+		values = append(values, "(?,?,?,?,?,?,?,?,?,?,?,?)")
+		params = append(params, id, name, description, thumbnail, address, latitude, longitude, rent, doorHeight, doorWidth, features, popularity)
 	}
+
+	_, err = tx.Exec(insertSql+strings.Join(values, ","), params...)
+	if err != nil {
+		c.Logger().Errorf("failed to insert estate: %v", err)
+		return c.NoContent(http.StatusInternalServerError)
+	}
+
 	if err := tx.Commit(); err != nil {
 		c.Logger().Errorf("failed to commit tx: %v", err)
 		return c.NoContent(http.StatusInternalServerError)
